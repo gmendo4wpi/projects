@@ -1,0 +1,291 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="rrbot" params="parent prefix *origin">
+
+
+  <xacro:property name="base_mass" value="1" /> <!-- arbitrary value for mass of base -->
+  <xacro:property name="base_length" value="0.5" />
+  <xacro:property name="base_radius" value="0.1" /> 
+
+  <xacro:property name="mass" value="1" /> <!-- arbitrary value for mass -->
+  <xacro:property name="width" value="0.1" /> <!-- Square dimensions (widthxwidth) of beams -->
+  <xacro:property name="height1" value="0.5" /> 
+  <xacro:property name="cylinder_length" value="0.2" /> 
+  <xacro:property name="cylinder_radius" value="0.025" /> 
+  <xacro:property name="cylinder_mass" value="1" /> 
+  <xacro:property name="prismatic_width" value="0.05" /> 
+  <xacro:property name="prismatic_height" value="0.3" /> 
+  <xacro:property name="prismatic_mass" value="0.5" /> <!-- arbitrary value for mass -->
+  <xacro:property name="axel_offset" value="0.02" /> <!-- Space btw top of beam and the each joint -->
+  <xacro:property name="camera_link" value="0.05" /> <!-- Size of square 'camera' box -->
+
+
+  <joint name="${prefix}base_joint" type="fixed">
+    <xacro:insert_block name="origin" />
+    <parent link="${parent}"/>
+    <child link="${prefix}base_link" />
+  </joint>
+
+  <!-- Base Link -->
+  <link name = "${prefix}base_link">
+
+    <collision>
+      <origin xyz = "0 0 ${base_length/5}" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length="${base_length}" radius="${base_radius}"/>
+      </geometry>
+      <material name="purple">
+        <color rgba="0.5 0 0.5 1"/>
+      </material>
+    </collision>
+
+    <visual>
+      <origin xyz = "0 0 ${base_length/5}" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length="${base_length}" radius="${base_radius}"/>
+      </geometry>
+      <material name="purple">
+        <color rgba="0.5 0 0.5 1"/>
+      </material>
+    </visual>
+
+    <inertial>
+      <origin xyz = "0 0 ${base_length/5}" rpy="0 0 0"/>
+      <mass value="${base_mass}"/>
+      <inertia 
+        ixx= "${base_mass / 12.0 * (base_length + base_radius)}"
+        ixy="0"
+        ixz="0"
+        iyy="${base_mass / 12.0 * (base_length + base_radius)}"
+        iyz="0"
+        izz="${base_mass / 12.0 * (base_length + base_radius)}"/>
+    </inertial>
+  </link>
+
+    <!-- Revolute1 in blue -->
+  <link name = "${prefix}rev_1">
+
+    <collision>
+      <origin xyz="0 0 ${height1/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${width} ${width} ${height1/2}"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0 0 0.8 1"/>
+      </material>
+    </collision>
+
+    <visual>
+      <origin xyz="0 0 ${height1/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${width} ${width} ${height1/2}"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0 0 0.8 1"/>
+      </material>
+    </visual>
+
+    <inertial>
+      <origin xyz="0 0 ${height1/2}" rpy="0 0 0"/>
+      <mass value="${mass/2}"/>
+      <inertia
+        ixx= "${mass / 12.0 * (width*width + height1*height1)}"
+        ixy="0"
+        ixz="0"
+        iyy="${mass / 12.0 * (width*width + height1*height1)}"
+        iyz="0"
+        izz="${mass / 12.0 * (width*width + height1*height1)}"/>
+    </inertial>
+
+  </link>
+
+  <joint name = "${prefix}joint1" type="continuous">
+    <parent link = "${prefix}base_link"/>
+    <child link = "${prefix}rev_1"/>
+    <origin xyz = "0 0 ${height1/2-axel_offset} " rpy="0 0 0"/>
+    <axis xyz = "0 0 1"/>
+    <dynamics damping="0.7"/>
+  </joint>
+
+  <!-- Link1 in red -->
+  <link name = "${prefix}link1">
+
+    <collision>
+      <origin xyz="${height1/2 - axel_offset} 0 0" rpy = "0 1.571 0"/>
+      <geometry>
+        <box size="${width*0.5} ${width} ${height1}"/>
+      </geometry>
+      <material name="red">
+        <color rgba="1 0 0 1"/>
+      </material>      
+    </collision>
+
+    <visual>
+      <origin xyz="${height1/2 - axel_offset} 0 0" rpy = "0 1.571 0"/>
+      <geometry>
+        <box size="${width*0.5} ${width} ${height1}"/>
+      </geometry>
+      <material name="red">
+        <color rgba="1 0 0 1"/>
+      </material>
+    </visual>
+
+    <inertial>
+      <origin xyz="${height1/2 - axel_offset} 0 0" rpy = "0 1.571 0"/>
+      <mass value="${mass/2}"/>
+      <inertia 
+        ixx= "${mass / 12.0 * (width*width + height1*height1)}"
+        ixy="0"
+        ixz="0"
+        iyy="${mass / 12.0 * (width*width + height1*height1)}"
+        iyz="0"
+        izz="${mass / 12.0 * (width*width + height1*height1)}"/>
+    </inertial>
+  </link>
+
+  <joint name = "${prefix}most_left_side_of_link1" type="fixed">
+    <parent link = "${prefix}rev_1"/>
+    <child link = "${prefix}link1"/>
+    <origin xyz = "0 0 ${height1/2 - axel_offset}" rpy="0 0 0"/>
+  </joint>
+     
+
+  <!-- Revolute 2 in yellow -->
+  <link name = "${prefix}rev_2">
+
+    <collision>
+      <origin xyz = "0 0 0" rpy = "0 0 0"/>
+      <geometry>
+        <cylinder
+          length = "${cylinder_length}"
+          radius = "${cylinder_radius}"/>
+        </geometry>
+      <material name="yellow">
+        <color rgba="1 1 0 1"/>
+      </material>
+    </collision>
+
+    <visual>
+      <origin xyz = "0 0 0" rpy = "0 0 0"/>
+      <geometry>
+        <cylinder
+           length = "${cylinder_length}"
+           radius = "${cylinder_radius}"/>
+      </geometry>
+      <material name="yellow">
+        <color rgba="1 1 0 1"/>
+      </material>
+    </visual>
+
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="${cylinder_mass}"/>
+      <inertia
+        ixx= "${cylinder_mass / 12.0 * (cylinder_length + cylinder_radius)}"
+        ixy="0"
+        ixz="0"
+        iyy="${cylinder_mass / 12.0 * (cylinder_length + cylinder_radius)}"
+        iyz="0"
+        izz="${cylinder_mass / 12.0 * (cylinder_length + cylinder_radius)}"/>
+    </inertial>
+  </link>
+
+  <joint name = "${prefix}joint2" type="continuous">
+    <parent link = "${prefix}link1"/>
+    <child link = "${prefix}rev_2"/>
+    <origin xyz = "${height1- axel_offset*4} 0 ${axel_offset*2}" rpy="0 0 0"/>
+    <axis xyz = "0 0 1"/>
+    <dynamics damping="0.7"/>
+  </joint>
+
+    <!-- Link2 in white -->
+  <link name = "${prefix}link2">
+
+    <collision>
+      <origin xyz="${height1/3 - axel_offset} 0 0" rpy = "0 1.571 0"/>
+      <geometry>
+        <box size="${width*0.5} ${width} ${height1}"/>
+      </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </collision>
+
+    <visual>
+      <origin xyz="${height1/3 - axel_offset} 0 0" rpy = "0 1.571 0"/>
+      <geometry>
+        <box size="${width*0.5} ${width} ${height1}"/>
+      </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+
+    <inertial>
+      <origin xyz="${height1/3 - axel_offset} 0 0" rpy = "0 1.571 0"/>
+      <mass value="${mass/2}"/>
+      <inertia
+        ixx= "${mass / 12.0 * (width*width + height1*height1)}"
+        ixy="0"
+        ixz="0"
+        iyy="${mass / 12.0 * (width*width + height1*height1)}"
+        iyz="0"
+        izz="${mass / 12.0 * (width*width + height1*height1)}"/>
+    </inertial>
+  </link>
+
+  <joint name = "${prefix}most_left_side_of_link2" type="fixed">
+    <parent link = "${prefix}rev_2"/>
+    <child link = "${prefix}link2"/>
+    <origin xyz = "0 0 ${axel_offset*2}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Link3 in green -->
+  <link name = "${prefix}link3">
+
+    <collision>
+      <origin xyz = "0 0 ${-axel_offset*2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${prismatic_width} ${prismatic_width} ${prismatic_height}"/>        
+      </geometry>
+      <material name="green">
+        <color rgba="0 0.5 0 1"/>
+      </material>
+    </collision>
+
+    <visual>
+      <origin xyz = "0 0 ${-axel_offset*2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${prismatic_width} ${prismatic_width} ${prismatic_height}"/>
+      </geometry>
+      <material name="green">
+        <color rgba="0 0.5 0 1"/>
+      </material>
+    </visual>
+
+    <inertial>
+      <origin xyz="0 0 ${-axel_offset*2}" rpy="0 0 0" />
+      <mass value="${prismatic_mass}"/>
+      <inertia 
+        ixx= "${prismatic_mass / 12.0 * (prismatic_width*prismatic_width + prismatic_height*prismatic_height)}"
+        ixy="0"
+        ixz="0"
+        iyy="${prismatic_mass / 12.0 * (prismatic_width*prismatic_width + prismatic_height*prismatic_height)}"
+        iyz="0"
+        izz="${prismatic_mass / 12.0 * (prismatic_width*prismatic_width + prismatic_height*prismatic_height)}"/>
+    </inertial>
+  </link>
+  
+  <joint name = "${prefix}joint3" type="prismatic">
+    <parent link = "${prefix}link2"/>
+    <child link = "${prefix}link3"/>
+    <origin xyz = "${prismatic_height + axel_offset} 0 ${axel_offset*2}" rpy="0 0 0"/>
+    <axis xyz = "0 0 1"/> 
+    <limit lower="-0.3" upper="0.03" effort="50" velocity="0.5"/> 
+    <dynamics damping="0.7"/>
+  </joint>
+
+</xacro:macro>
+
+</robot>

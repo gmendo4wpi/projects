@@ -1,0 +1,1 @@
+/home/gio/ros2_ws/src/rrbot_description/launch/view_robot.launch.py
